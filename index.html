@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Character Research Reference</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f1fa;
+  color: #2e2e2e;
+}
+
+header {
+  background: #6b5ca5;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.section {
+  margin-top: 30px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Pinterest-style feed */
+.feed {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.card img {
+  width: 100%;
+  display: block;
+}
+
+.card .content {
+  padding: 12px;
+}
+
+.card h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.card a {
+  text-decoration: none;
+  color: #6b5ca5;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.note {
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Character Research Reference</h1>
+  <p>เว็บอ้างอิงเพื่อการออกแบบตัวละครจากข้อมูลเชิงวิชาการ</p>
+</header>
+
+<div class="container">
+
+  <!-- STEP 1 -->
+  <div class="section">
+    <h2>1. เลือกเซตติ้ง</h2>
+    <select id="setting" onchange="checkSetting()">
+      <option value="">-- เลือกเซตติ้ง --</option>
+      <option value="modern">โลกมนุษย์ปัจจุบัน</option>
+      <option value="fantasy">โลกแฟนตาซี (อิง D&D)</option>
+      <option value="custom">อื่น ๆ</option>
+    </select>
+
+    <input id="customSetting" class="hidden" placeholder="อธิบายเซตติ้งของคุณ">
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="section hidden" id="categorySection">
+    <h2>2. เลือกประเภทข้อมูล</h2>
+    <select id="category" onchange="loadFeed()">
+      <option value="">-- เลือก --</option>
+      <option value="inspiration">แรงบันดาลใจทั่วไป</option>
+      <option value="biology">ข้อมูลเชิงชีวภาพ</option>
+      <option value="psychology">ข้อมูลทางจิตวิทยา</option>
+      <option value="society">ข้อมูลด้านอื่น ๆ</option>
+    </select>
+
+    <p class="note">
+      ระบบจะแสดงข้อมูลอ้างอิงเท่านั้น โดยไม่มีคำแนะนำหรือข้อเสนอแนะในการออกแบบ
+    </p>
+  </div>
+
+  <!-- FEED -->
+  <div class="section hidden" id="feedSection">
+    <h2>ข้อมูลอ้างอิง</h2>
+    <div class="feed" id="feed"></div>
+  </div>
+
+</div>
+
+<script>
+function checkSetting() {
+  const setting = document.getElementById("setting").value;
+  const custom = document.getElementById("customSetting");
+  const category = document.getElementById("categorySection");
+
+  if (setting === "custom") {
+    custom.classList.remove("hidden");
+  } else {
+    custom.classList.add("hidden");
+  }
+
+  if (setting !== "") {
+    category.classList.remove("hidden");
+  }
+}
+
+function loadFeed() {
+  const category = document.getElementById("category").value;
+  const feed = document.getElementById("feed");
+  const feedSection = document.getElementById("feedSection");
+
+  feed.innerHTML = "";
+  feedSection.classList.remove("hidden");
+
+  const data = {
+    inspiration: [
+      {
+        img: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+        title: "Fantasy Environment Reference",
+        link: "https://unsplash.com"
+      },
+      {
+        img: "https://images.unsplash.com/photo-1520975916090-3105956dac38",
+        title: "Human Lifestyle Inspiration",
+        link: "https://unsplash.com"
+      }
+    ],
+    biology: [
+      {
+        img: "https://images.unsplash.com/photo-1559757175-5700dde675bc",
+        title: "Evolutionary Adaptation in Species",
+        link: "https://arxiv.org/abs/2001.00001"
+      },
+      {
+        img: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69",
+        title: "Morphological Diversity",
+        link: "https://www.ncbi.nlm.nih.gov/pmc/"
+      }
+    ],
+    psychology: [
+      {
+        img: "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca",
+        title: "Behavioral Patterns in Social Species",
+        link: "https://pubmed.ncbi.nlm.nih.gov/"
+      },
+      {
+        img: "https://images.unsplash.com/photo-1517638851339-a711cfcf327b",
+        title: "Stress and Adaptation",
+        link: "https://arxiv.org"
+      }
+    ],
+    society: [
+      {
+        img: "https://images.unsplash.com/photo-1506784365847-bbad939e9335",
+        title: "Family Structures Across Cultures",
+        link: "https://www.ncbi.nlm.nih.gov/"
+      },
+      {
+        img: "https://images.unsplash.com/photo-1493809842364-78817add7ffb",
+        title: "Living Conditions and Environment",
+        link: "https://openalex.org"
+      }
+    ]
+  };
+
+  data[category].forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <img src="${item.img}" alt="">
+      <div class="content">
+        <h4>${item.title}</h4>
+        <a href="${item.link}" target="_blank">แหล่งอ้างอิง</a>
+      </div>
+    `;
+    feed.appendChild(card);
+  });
+}
+</script>
+
+</body>
+</html>
