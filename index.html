@@ -93,7 +93,7 @@ async function loadFeed() {
   if (!category) return;
 
   const res = await fetch(
-    "https://YOUR_WORKER_URL/?category=" + category
+    "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + category
   );
   const data = await res.json();
 
