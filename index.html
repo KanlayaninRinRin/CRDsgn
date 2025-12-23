@@ -1,70 +1,53 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<title>Character Research Reference</title>
-<style>
-body {margin:0;font-family:Arial,sans-serif;background:#f2eafa;color:#3a2c5a;}
-header {background:#a18cd1;color:white;padding:20px;text-align:center;}
-.container {max-width:1200px;margin:auto;padding:20px;}
-select,input,button{padding:10px;width:100%;margin:8px 0;border-radius:8px;border:1px solid #ccc;}
-button {background-color:#6b5ca5;color:white;border:none;cursor:pointer;}
-button:hover {background-color:#56478f;}
-.feed {display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:20px;}
-.card {background:#fffaf5;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-.card img {width:100%;}
-.card .content {padding:12px;}
-.card h4 {margin:0 0 6px 0;font-size:15px;}
-.card a {color:#6b5ca5;text-decoration:none;font-weight:bold;font-size:14px;}
-</style>
-</head>
-<body>
-
-<header>
-<h1>Character Research Reference</h1>
-<p>Visual & Academic Reference for Character Design</p>
-</header>
-
 <div class="container">
-<h3>เลือกหมวดข้อมูล</h3>
-<select id="category">
-  <option value="">-- เลือกประเภทข้อมูล --</option>
-  <option value="inspiration">แรงบันดาลใจ</option>
-  <option value="biology">ชีวภาพ</option>
-  <option value="psychology">จิตวิทยา</option>
-  <option value="society">สังคม</option>
-</select>
+  <h3>เลือกหมวดข้อมูล</h3>
+  <select id="category">
+    <option value="">-- เลือกประเภทข้อมูล --</option>
+    <option value="modern">โลกมนุษย์ปัจจุบัน</option>
+    <option value="fantasy">โลกแฟนตาซี</option>
+    <option value="other">อื่น ๆ</option>
+  </select>
 
-<input type="text" id="search-input" placeholder="พิมพ์คำค้นหา">
-<button id="search-btn">ค้นหา</button>
+  <input type="text" id="custom-setting" placeholder="ระบุเซตติ้งเอง (ไม่บังคับ)">
+  <input type="text" id="search-input" placeholder="พิมพ์คำค้นหา (ไม่บังคับ)">
+  <button id="search-btn">ค้นหา</button>
 
-<div class="feed" id="feed"></div>
+  <div class="feed" id="feed"></div>
+  <button id="next-btn" style="margin-top:20px;">หน้าถัดไป</button>
 </div>
 
 <script>
 const categorySelect = document.getElementById("category");
+const customSetting = document.getElementById("custom-setting");
 const searchInput = document.getElementById("search-input");
 const searchBtn = document.getElementById("search-btn");
 const feed = document.getElementById("feed");
+const nextBtn = document.getElementById("next-btn");
+
 let currentPage = 1;
 let loading = false;
+let lastQuery = "";
 
+// โหลด feed
 async function loadFeed(reset=false){
   const category = categorySelect.value;
-  const query = searchInput.value.trim();
-  if(!category) return alert("กรุณาเลือกหมวด");
-  if(!query) return alert("กรุณากรอกคำค้น");
+  if(!category) return alert("กรุณาเลือกเซตติ้ง");
 
-  if(reset){
-    feed.innerHTML="";
-    currentPage=1;
-    const nextBtn=document.getElementById("next-btn");
-    if(nextBtn) nextBtn.remove();
+  let query = searchInput.value.trim();
+  if(!query){
+    if(category === "other"){
+      query = customSetting.value.trim() || "random";
+    } else {
+      query = category;
+    }
   }
+
+  lastQuery = query;
+
+  if(reset){ feed.innerHTML=""; currentPage=1; }
 
   feed.innerHTML="<p>กำลังโหลด...</p>";
   if(loading) return;
-  loading=true;
+  loading = true;
 
   try{
     const res = await fetch(`https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`);
@@ -73,38 +56,36 @@ async function loadFeed(reset=false){
 
     if(!data || data.length===0){ feed.innerHTML="<p>ไม่พบผลลัพธ์</p>"; loading=false; return; }
 
-    data.forEach(item=>{
-      const card=document.createElement("div");
-      card.className="card";
+    // แยกภาพและวิจัย
+    const images = data.filter(d=>d.type==="image").slice(0,20);
+    const research = data.filter(d=>d.type==="research").slice(0,20);
 
-      if(item.type==="image"){
-        card.innerHTML=`<img src="${item.image}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
-      }else if(item.type==="research"){
-        card.innerHTML=`
-          <div class="content" style="padding:15px;">
-            <h4>${item.title}</h4>
+    const columns = [[],[],[],[]]; // 0-1: images, 2-3: research
+    images.forEach((img,i)=> columns[i%2].push(img));
+    research.forEach((res,i)=> columns[2 + (i%2)].push(res));
+
+    feed.innerHTML = "<div style='display:grid;grid-template-columns:1fr 1fr 1fr 1fr; gap:16px;'></div>";
+    const grid = feed.firstChild;
+
+    for(const col of columns){
+      const colDiv = document.createElement("div");
+      col.forEach(item=>{
+        const card = document.createElement("div");
+        card.className="card";
+
+        if(item.type==="image"){
+          card.innerHTML=`<img src="${item.image}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
+        } else if(item.type==="research"){
+          card.innerHTML=`<div class="content"><h4>${item.title}</h4>
             <p><strong>ผู้แต่ง:</strong> ${item.authors}</p>
-            <p><strong>ปีที่เผยแพร่:</strong> ${item.year}</p>
+            <p><strong>ปี:</strong> ${item.year}</p>
             <p><strong>สถาบัน:</strong> ${item.institution}</p>
             <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
           </div>`;
-      }
-
-      feed.appendChild(card);
-    });
-
-    if(!document.getElementById("next-btn")){
-      const nextBtn=document.createElement("button");
-      nextBtn.id="next-btn"; nextBtn.textContent="หน้าถัดไป";
-      nextBtn.style.marginTop="20px";
-      nextBtn.style.padding="10px 20px";
-      nextBtn.style.borderRadius="8px";
-      nextBtn.style.border="none";
-      nextBtn.style.backgroundColor="#6b5ca5";
-      nextBtn.style.color="white";
-      nextBtn.style.cursor="pointer";
-      nextBtn.addEventListener("click",()=>{currentPage++; loadFeed(false);});
-      feed.parentNode.appendChild(nextBtn);
+        }
+        colDiv.appendChild(card);
+      });
+      grid.appendChild(colDiv);
     }
 
   }catch(err){
@@ -115,9 +96,13 @@ async function loadFeed(reset=false){
   loading=false;
 }
 
-searchBtn.addEventListener("click",()=>loadFeed(true));
-searchInput.addEventListener("keypress",e=>{if(e.key==="Enter") loadFeed(true);});
-</script>
+// ปุ่มค้นหา
+searchBtn.addEventListener("click", ()=>loadFeed(true));
+searchInput.addEventListener("keypress", e=>{if(e.key==="Enter") loadFeed(true);});
 
-</body>
-</html>
+// หน้าถัดไป
+nextBtn.addEventListener("click", ()=>{
+  currentPage++;
+  loadFeed(false);
+});
+</script>
