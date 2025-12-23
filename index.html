@@ -8,11 +8,12 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f1fa;
+  background: #f2eafa; /* พาสเทลฟ้า-ม่วง */
+  color: #3a2c5a;
 }
 
 header {
-  background: #6b5ca5;
+  background: #a18cd1; /* สีม่วงแฟนตาซี */
   color: white;
   padding: 20px;
   text-align: center;
@@ -24,9 +25,23 @@ header {
   padding: 20px;
 }
 
-select {
+select, input, button {
   padding: 10px;
   width: 100%;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #6b5ca5;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #56478f;
 }
 
 .feed {
@@ -37,10 +52,10 @@ select {
 }
 
 .card {
-  background: white;
-  border-radius: 12px;
+  background: #fffaf5; /* ขาวครีม */
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .card img {
@@ -72,69 +87,126 @@ select {
   <p>Visual & Academic Reference for Character Design</p>
 </header>
 
-<div class="container">
-  <select id="category">
-    <option value="">-- เลือกประเภทข้อมูล --</option>
-    <option value="inspiration">แรงบันดาลใจ</option>
-    <option value="biology">ชีวภาพ</option>
-    <option value="psychology">จิตวิทยา</option>
-    <option value="society">สังคม</option>
-  </select>
+<div class="container" id="step-container">
 
-  <div class="feed" id="feed"></div>
+  <!-- STEP 1: เลือกเซตติ้ง -->
+  <div id="step-setting">
+    <h3>เลือกเซตติ้งของตัวละคร</h3>
+    <select id="setting-select">
+      <option value="">-- เลือกเซตติ้ง --</option>
+      <option value="modern">โลกมนุษย์ปัจจุบัน</option>
+      <option value="fantasy">โลกแฟนตาซี (D&D)</option>
+      <option value="other">อื่น ๆ</option>
+    </select>
+    <input type="text" id="setting-custom" placeholder="กรอกเซตติ้งเอง" style="display:none;">
+    <button id="setting-next">ถัดไป</button>
+  </div>
+
+  <!-- STEP 2: เลือกหมวดข้อมูล -->
+  <div id="step-category" style="display:none;">
+    <h3>เลือกประเภทข้อมูลที่ต้องการ</h3>
+    <select id="category">
+      <option value="">-- เลือกประเภทข้อมูล --</option>
+      <option value="inspiration">แรงบันดาลใจ</option>
+      <option value="biology">ชีวภาพ</option>
+      <option value="psychology">จิตวิทยา</option>
+      <option value="society">สังคม</option>
+    </select>
+    <button id="category-back">กลับ</button>
+    <div class="feed" id="feed"></div>
+  </div>
+
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  const feed = document.getElementById("feed");
+  // Elements
+  const stepSetting = document.getElementById("step-setting");
+  const stepCategory = document.getElementById("step-category");
+  const settingSelect = document.getElementById("setting-select");
+  const settingCustom = document.getElementById("setting-custom");
+  const settingNext = document.getElementById("setting-next");
   const categorySelect = document.getElementById("category");
+  const feed = document.getElementById("feed");
+  const categoryBack = document.getElementById("category-back");
 
-  if (!feed || !categorySelect) {
-    console.error("Missing HTML elements");
-    return;
-  }
+  let currentSetting = "";
 
+  // แสดง/ซ่อน input กรอกเอง
+  settingSelect.addEventListener("change", () => {
+    if (settingSelect.value === "other") {
+      settingCustom.style.display = "block";
+    } else {
+      settingCustom.style.display = "none";
+    }
+  });
+
+  // STEP 1 → STEP 2
+  settingNext.addEventListener("click", () => {
+    if (settingSelect.value === "") return alert("กรุณาเลือกเซตติ้ง");
+    currentSetting = (settingSelect.value === "other") ? settingCustom.value : settingSelect.value;
+    if (!currentSetting) return alert("กรุณากรอกเซตติ้งเอง");
+    stepSetting.style.display = "none";
+    stepCategory.style.display = "block";
+  });
+
+  // STEP 2 → STEP 1
+  categoryBack.addEventListener("click", () => {
+    stepCategory.style.display = "none";
+    stepSetting.style.display = "block";
+  });
+
+  // Load Feed
+  let loading = false;
   async function loadFeed() {
     const category = categorySelect.value;
-    if (!category) return;
-
+    if (!category || loading) return;
+    loading = true;
     feed.innerHTML = "<p>กำลังโหลด...</p>";
 
     try {
+      // เรียก Worker API
       const res = await fetch(
         "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + category
       );
 
       if (!res.ok) {
         feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+        loading = false;
         return;
       }
 
       const data = await res.json();
       feed.innerHTML = "";
 
-      data.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${item.image}" loading="lazy">
-          <div class="content">
-            <h4>${item.title}</h4>
-            <a href="${item.research}" target="_blank">งานวิจัย</a>
-          </div>
-        `;
-        feed.appendChild(card);
-      });
+      if (!data || data.length === 0) {
+        feed.innerHTML = "<p>ไม่มีข้อมูลสำหรับหมวดนี้</p>";
+      } else {
+        data.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="${item.image}" loading="lazy">
+            <div class="content">
+              <h4>${item.title}</h4>
+              <a href="${item.research}" target="_blank">งานวิจัย</a>
+            </div>
+          `;
+          feed.appendChild(card);
+        });
+      }
 
     } catch (err) {
       console.error(err);
       feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
     }
+    loading = false;
   }
 
   categorySelect.addEventListener("change", loadFeed);
 
 });
-</script></body>
+</script>
+</body>
 </html>
