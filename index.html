@@ -167,16 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       // เรียก Worker API
-      const res = await fetch(
-        "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + category
-      );
-
-      if (!res.ok) {
-        feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
-        loading = false;
-        return;
-      }
-
+      const res = await fetch("https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + category);
       const data = await res.json();
       feed.innerHTML = "";
 
@@ -186,18 +177,28 @@ document.addEventListener("DOMContentLoaded", () => {
         data.forEach(item => {
           const card = document.createElement("div");
           card.className = "card";
-          card.innerHTML = `
-            <img src="${item.image}" loading="lazy">
-            <div class="content">
-              <h4>${item.title}</h4>
-              <a href="${item.research}" target="_blank">งานวิจัย</a>
-            </div>
-          `;
+
+          if(item.type === "image") {
+            card.innerHTML = `
+              <img src="${item.image}" loading="lazy">
+              <div class="content">
+                <h4>${item.title}</h4>
+              </div>
+            `;
+          } else if(item.type === "research") {
+            card.innerHTML = `
+              <div class="content" style="padding:20px; text-align:center;">
+                <h4>${item.title}</h4>
+                <a href="${item.link}" target="_blank">งานวิจัย</a>
+              </div>
+            `;
+          }
+
           feed.appendChild(card);
         });
       }
 
-    } catch (err) {
+    } catch(err) {
       console.error(err);
       feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
     }
