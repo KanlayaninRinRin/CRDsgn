@@ -94,9 +94,7 @@ async function loadFeed(reset=false){
       const card=document.createElement("div");
       card.className="card";
       if(item.type==="image"){
-        // โหลดรูปจาก Unsplash ตาม query
-        const imgUrl=`https://source.unsplash.com/400x300/?${encodeURIComponent(item.query)}&sig=${Math.random()}`;
-        card.innerHTML=`<img src="${imgUrl}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
+        card.innerHTML=`<img src="${item.image}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
       } else if(item.type==="research"){
         card.innerHTML=`<div class="content"><h4>${item.title}</h4>
           <p><strong>ผู้แต่ง:</strong> ${item.authors}</p>
