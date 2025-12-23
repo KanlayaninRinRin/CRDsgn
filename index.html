@@ -88,48 +88,54 @@ select {
 let currentCategory = "";
 let loading = false;
 
-async function loadFeed(reset = false) {
-  if (loading) return;
-  loading = true;
+const feed = document.getElementById("feed");
+const categorySelect = document.getElementById("category");
 
-  const feed = document.getElementById("feed");
+async function loadFeed(reset = false) {
+  if (loading || !currentCategory) return;
+  loading = true;
 
   if (reset) {
     feed.innerHTML = "";
   }
 
-  const res = await fetch(
-    "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + currentCategory
-  );
+  try {
+    const res = await fetch(
+      "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + currentCategory
+    );
 
-  const data = await res.json();
+    const data = await res.json();
 
-  data.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${item.image}">
-      <div class="content">
-        <h4>${item.title}</h4>
-        <a href="${item.research}" target="_blank">งานวิจัย</a>
-      </div>
-    `;
-    feed.appendChild(card);
-  });
+    data.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${item.image}" loading="lazy">
+        <div class="content">
+          <h4>${item.title}</h4>
+          <a href="${item.research}" target="_blank">งานวิจัย</a>
+        </div>
+      `;
+      feed.appendChild(card);
+    });
+
+  } catch (e) {
+    console.error(e);
+  }
 
   loading = false;
 }
 
-document.getElementById("category").addEventListener("change", e => {
+categorySelect.addEventListener("change", e => {
   currentCategory = e.target.value;
-  if (!currentCategory) return;
   loadFeed(true);
 });
 
 // infinite scroll
 window.addEventListener("scroll", () => {
   if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 200
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 300
   ) {
     loadFeed();
   }
