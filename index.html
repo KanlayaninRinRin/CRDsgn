@@ -4,90 +4,41 @@
 <meta charset="UTF-8">
 <title>Character Research Reference</title>
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2eafa;
-  color: #3a2c5a;
-}
-header {
-  background: #a18cd1;
-  color: white;
-  padding: 20px;
-  text-align: center;
-}
-.container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-}
-select, input, button {
-  padding: 10px;
-  width: 100%;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-button {
-  background-color: #6b5ca5;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-button:hover {
-  background-color: #56478f;
-}
-.feed {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-.card {
-  background: #fffaf5;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.card img {
-  width: 100%;
-}
-.card .content {
-  padding: 12px;
-}
-.card h4 {
-  margin: 0 0 6px 0;
-  font-size: 15px;
-}
-.card a {
-  color: #6b5ca5;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 14px;
-}
+body {margin:0;font-family:Arial,sans-serif;background:#f2eafa;color:#3a2c5a;}
+header {background:#a18cd1;color:white;padding:20px;text-align:center;}
+.container {max-width:1200px;margin:auto;padding:20px;}
+select,input,button{padding:10px;width:100%;margin:8px 0;border-radius:8px;border:1px solid #ccc;}
+button {background-color:#6b5ca5;color:white;border:none;cursor:pointer;}
+button:hover {background-color:#56478f;}
+.feed {display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:20px;}
+.card {background:#fffaf5;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.card img {width:100%;}
+.card .content {padding:12px;}
+.card h4 {margin:0 0 6px 0;font-size:15px;}
+.card a {color:#6b5ca5;text-decoration:none;font-weight:bold;font-size:14px;}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Character Research Reference</h1>
-  <p>Visual & Academic Reference for Character Design</p>
+<h1>Character Research Reference</h1>
+<p>Visual & Academic Reference for Character Design</p>
 </header>
 
 <div class="container">
-  <h3>เลือกหมวดข้อมูล</h3>
-  <select id="category">
-    <option value="">-- เลือกประเภทข้อมูล --</option>
-    <option value="inspiration">แรงบันดาลใจ</option>
-    <option value="biology">ชีวภาพ</option>
-    <option value="psychology">จิตวิทยา</option>
-    <option value="society">สังคม</option>
-  </select>
+<h3>เลือกหมวดข้อมูล</h3>
+<select id="category">
+  <option value="">-- เลือกประเภทข้อมูล --</option>
+  <option value="inspiration">แรงบันดาลใจ</option>
+  <option value="biology">ชีวภาพ</option>
+  <option value="psychology">จิตวิทยา</option>
+  <option value="society">สังคม</option>
+</select>
 
-  <input type="text" id="search-input" placeholder="พิมพ์คำค้นหา">
-  <button id="search-btn">ค้นหา</button>
+<input type="text" id="search-input" placeholder="พิมพ์คำค้นหา">
+<button id="search-btn">ค้นหา</button>
 
-  <div class="feed" id="feed"></div>
+<div class="feed" id="feed"></div>
 </div>
 
 <script>
@@ -95,109 +46,77 @@ const categorySelect = document.getElementById("category");
 const searchInput = document.getElementById("search-input");
 const searchBtn = document.getElementById("search-btn");
 const feed = document.getElementById("feed");
-
 let currentPage = 1;
 let loading = false;
 
-async function loadFeed(reset = false) {
+async function loadFeed(reset=false){
   const category = categorySelect.value;
   const query = searchInput.value.trim();
+  if(!category) return alert("กรุณาเลือกหมวด");
+  if(!query) return alert("กรุณากรอกคำค้น");
 
-  if (!category) return alert("กรุณาเลือกหมวด");
-  if (!query) return alert("กรุณากรอกคำค้น");
-
-  if (reset) {
-    feed.innerHTML = "";
-    currentPage = 1;
-    const nextBtn = document.getElementById("next-btn");
-    if (nextBtn) nextBtn.remove();
+  if(reset){
+    feed.innerHTML="";
+    currentPage=1;
+    const nextBtn=document.getElementById("next-btn");
+    if(nextBtn) nextBtn.remove();
   }
 
-  const loadingMsg = document.createElement("p");
-  loadingMsg.textContent = "กำลังโหลด...";
-  feed.appendChild(loadingMsg);
+  feed.innerHTML="<p>กำลังโหลด...</p>";
+  if(loading) return;
+  loading=true;
 
-  if (loading) return;
-  loading = true;
+  try{
+    const res = await fetch(`https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`);
+    const data = await res.json();
+    feed.innerHTML="";
 
-  try {
-    const res = await fetch(
-      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
-    );
+    if(!data || data.length===0){ feed.innerHTML="<p>ไม่พบผลลัพธ์</p>"; loading=false; return; }
 
-    // debug log
-    const text = await res.text();
-    console.log("Worker returned:", text);
-    const data = JSON.parse(text);
+    data.forEach(item=>{
+      const card=document.createElement("div");
+      card.className="card";
 
-    feed.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      feed.innerHTML = "<p>ไม่พบผลลัพธ์</p>";
-      loading = false;
-      return;
-    }
-
-    data.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      if(item.type === "image") {
-        card.innerHTML = `
-          <img src="${item.image}" loading="lazy">
-          <div class="content">
-            <h4>${item.title}</h4>
-          </div>
-        `;
-      } else if(item.type === "research") {
-        card.innerHTML = `
+      if(item.type==="image"){
+        card.innerHTML=`<img src="${item.image}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
+      }else if(item.type==="research"){
+        card.innerHTML=`
           <div class="content" style="padding:15px;">
             <h4>${item.title}</h4>
             <p><strong>ผู้แต่ง:</strong> ${item.authors}</p>
             <p><strong>ปีที่เผยแพร่:</strong> ${item.year}</p>
             <p><strong>สถาบัน:</strong> ${item.institution}</p>
             <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
-          </div>
-        `;
+          </div>`;
       }
 
       feed.appendChild(card);
     });
 
-    // ปุ่มหน้าถัดไป
-    if (!document.getElementById("next-btn")) {
-      const nextBtn = document.createElement("button");
-      nextBtn.id = "next-btn";
-      nextBtn.textContent = "หน้าถัดไป";
-      nextBtn.style.marginTop = "20px";
-      nextBtn.style.padding = "10px 20px";
-      nextBtn.style.borderRadius = "8px";
-      nextBtn.style.border = "none";
-      nextBtn.style.backgroundColor = "#6b5ca5";
-      nextBtn.style.color = "white";
-      nextBtn.style.cursor = "pointer";
-
-      nextBtn.addEventListener("click", () => {
-        currentPage++;
-        loadFeed(false);
-      });
-
+    if(!document.getElementById("next-btn")){
+      const nextBtn=document.createElement("button");
+      nextBtn.id="next-btn"; nextBtn.textContent="หน้าถัดไป";
+      nextBtn.style.marginTop="20px";
+      nextBtn.style.padding="10px 20px";
+      nextBtn.style.borderRadius="8px";
+      nextBtn.style.border="none";
+      nextBtn.style.backgroundColor="#6b5ca5";
+      nextBtn.style.color="white";
+      nextBtn.style.cursor="pointer";
+      nextBtn.addEventListener("click",()=>{currentPage++; loadFeed(false);});
       feed.parentNode.appendChild(nextBtn);
     }
 
-  } catch (err) {
+  }catch(err){
     console.error(err);
-    feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+    feed.innerHTML="<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
   }
 
-  loading = false;
+  loading=false;
 }
 
-searchBtn.addEventListener("click", () => loadFeed(true));
-
-searchInput.addEventListener("keypress", e => {
-  if (e.key === "Enter") loadFeed(true);
-});
+searchBtn.addEventListener("click",()=>loadFeed(true));
+searchInput.addEventListener("keypress",e=>{if(e.key==="Enter") loadFeed(true);});
 </script>
 
 </body>
