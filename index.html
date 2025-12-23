@@ -58,7 +58,6 @@ const feed=document.getElementById("feed");
 const nextBtn=document.getElementById("next-btn");
 
 let currentPage=1;
-let currentQuery="";
 
 settingSelect.addEventListener("change",()=>{
   settingCustom.style.display=(settingSelect.value==="other")?"block":"none";
@@ -75,21 +74,22 @@ async function loadFeed(reset=false){
   if(reset){ feed.innerHTML=""; currentPage=1; nextBtn.style.display="none"; }
 
   feed.innerHTML="<p>กำลังโหลด...</p>";
-  currentQuery=query;
 
   try{
-    const res=await fetch(`https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`)
+    const res=await fetch(`https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`);
     const data=await res.json();
-    feed.innerHTML=""
+    feed.innerHTML="";
+
     if(!data || data.length===0){ feed.innerHTML="<p>ไม่พบผลลัพธ์</p>"; return; }
 
-    // จัดสี่คอลัม: 2 รูป + 2 วิจัย
     let imageCount=0, researchCount=0;
     data.forEach(item=>{
       const card=document.createElement("div");
       card.className="card";
+
       if(item.type==="image" && imageCount<20){
-        card.innerHTML=`<img src="${item.image}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
+        const imgUrl=`https://source.unsplash.com/400x300/?${encodeURIComponent(item.query)}&sig=${item.sig}`;
+        card.innerHTML=`<img src="${imgUrl}" loading="lazy"><div class="content"><h4>${item.title}</h4></div>`;
         imageCount++;
       } else if(item.type==="research" && researchCount<20){
         card.innerHTML=`<div class="content"><h4>${item.title}</h4>
@@ -98,7 +98,7 @@ async function loadFeed(reset=false){
           <p><strong>สถาบัน:</strong> ${item.institution}</p>
           <a href="${item.link}" target="_blank">อ่านงานวิจัย</a></div>`;
         researchCount++;
-      } else return;
+      }
       feed.appendChild(card);
     });
 
