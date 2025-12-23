@@ -1,79 +1,5 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<title>Character Research Reference</title>
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2eafa;
-  color: #3a2c5a;
-}
-header {
-  background: #a18cd1;
-  color: white;
-  padding: 20px;
-  text-align: center;
-}
-.container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-}
-select, input, button {
-  padding: 10px;
-  width: 100%;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-button {
-  background-color: #6b5ca5;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-button:hover {
-  background-color: #56478f;
-}
-.feed {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-.card {
-  background: #fffaf5;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.card img {
-  width: 100%;
-}
-.card .content {
-  padding: 12px;
-}
-.card h4 {
-  margin: 0 0 6px 0;
-  font-size: 15px;
-}
-.card a {
-  color: #6b5ca5;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 14px;
-}
-</style>
-</head>
-<body>
-<header>
-  <h1>Character Research Reference</h1>
-  <p>Visual & Academic Reference for Character Design</p>
-</header>
-
 <div class="container">
+
   <h3>เลือกหมวดข้อมูล</h3>
   <select id="category">
     <option value="">-- เลือกประเภทข้อมูล --</option>
@@ -96,18 +22,18 @@ const searchBtn = document.getElementById("search-btn");
 const feed = document.getElementById("feed");
 let loading = false;
 
-searchBtn.addEventListener("click", async () => {
+// ฟังก์ชันโหลด feed
+async function loadFeed() {
   const category = categorySelect.value;
   const query = searchInput.value.trim();
 
   if(!category) return alert("กรุณาเลือกหมวด");
-  if(!query) return alert("กรุณากรอกคำค้นหา");
+  if(!query) return alert("กรุณากรอกคำค้น");
 
   feed.innerHTML = "<p>กำลังโหลด...</p>";
   loading = true;
 
   try {
-    // <<< ใส่ URL Worker ของคุณตรงนี้ >>>
     const res = await fetch(`https://YOUR_WORKER_URL/?category=${category}&q=${encodeURIComponent(query)}`);
     const data = await res.json();
     feed.innerHTML = "";
@@ -147,7 +73,13 @@ searchBtn.addEventListener("click", async () => {
   }
 
   loading = false;
+}
+
+// กดปุ่มค้นหา
+searchBtn.addEventListener("click", loadFeed);
+
+// กด Enter ในช่อง input ก็ค้นหาได้
+searchInput.addEventListener("keypress", e => {
+  if(e.key === "Enter") loadFeed();
 });
 </script>
-</body>
-</html>
