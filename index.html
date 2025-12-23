@@ -7,11 +7,11 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f2eafa; /* พาสเทลฟ้า-ม่วง */
+  background: #f2eafa;
   color: #3a2c5a;
 }
 header {
-  background: #a18cd1; /* สีม่วงแฟนตาซี */
+  background: #a18cd1;
   color: white;
   padding: 20px;
   text-align: center;
@@ -44,7 +44,7 @@ button:hover {
   margin-top: 20px;
 }
 .card {
-  background: #fffaf5; /* ขาวครีม */
+  background: #fffaf5;
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -122,7 +122,7 @@ async function loadFeed(reset = false) {
 
   try {
     const res = await fetch(
-      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=inspiration/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
+      `https://YOUR_WORKER_URL/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
     );
     const data = await res.json();
 
@@ -138,18 +138,21 @@ async function loadFeed(reset = false) {
       const card = document.createElement("div");
       card.className = "card";
 
-      if (item.type === "image") {
+      if(item.type === "image") {
         card.innerHTML = `
           <img src="${item.image}" loading="lazy">
           <div class="content">
             <h4>${item.title}</h4>
           </div>
         `;
-      } else if (item.type === "research") {
+      } else if(item.type === "research") {
         card.innerHTML = `
-          <div class="content" style="padding:20px; text-align:center;">
+          <div class="content" style="padding:15px;">
             <h4>${item.title}</h4>
-            <a href="${item.link}" target="_blank">งานวิจัย</a>
+            <p><strong>ผู้แต่ง:</strong> ${item.authors}</p>
+            <p><strong>ปีที่เผยแพร่:</strong> ${item.year}</p>
+            <p><strong>สถาบัน:</strong> ${item.institution}</p>
+            <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
           </div>
         `;
       }
