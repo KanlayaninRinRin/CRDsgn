@@ -84,6 +84,8 @@ async function loadFeed(reset=false){
 
     let imageCount=0, researchCount=0;
     data.forEach(item=>{
+      if(imageCount>=20 && researchCount>=20) return;
+
       const card=document.createElement("div");
       card.className="card";
 
