@@ -122,9 +122,13 @@ async function loadFeed(reset = false) {
 
   try {
     const res = await fetch(
-      `https://YOUR_WORKER_URL/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
+      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
     );
-    const data = await res.json();
+
+    // debug log
+    const text = await res.text();
+    console.log("Worker returned:", text);
+    const data = JSON.parse(text);
 
     feed.innerHTML = "";
 
@@ -160,6 +164,7 @@ async function loadFeed(reset = false) {
       feed.appendChild(card);
     });
 
+    // ปุ่มหน้าถัดไป
     if (!document.getElementById("next-btn")) {
       const nextBtn = document.createElement("button");
       nextBtn.id = "next-btn";
