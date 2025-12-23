@@ -85,61 +85,56 @@ select {
 </div>
 
 <script>
-let currentCategory = "";
-let loading = false;
+document.addEventListener("DOMContentLoaded", () => {
 
-const feed = document.getElementById("feed");
-const categorySelect = document.getElementById("category");
+  const feed = document.getElementById("feed");
+  const categorySelect = document.getElementById("category");
 
-async function loadFeed(reset = false) {
-  if (loading || !currentCategory) return;
-  loading = true;
-
-  if (reset) {
-    feed.innerHTML = "";
+  if (!feed || !categorySelect) {
+    console.error("Missing HTML elements");
+    return;
   }
 
-  try {
-    const res = await fetch(
-      "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + currentCategory
-    );
+  async function loadFeed() {
+    const category = categorySelect.value;
+    if (!category) return;
 
-    const data = await res.json();
+    feed.innerHTML = "<p>กำลังโหลด...</p>";
 
-    data.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${item.image}" loading="lazy">
-        <div class="content">
-          <h4>${item.title}</h4>
-          <a href="${item.research}" target="_blank">งานวิจัย</a>
-        </div>
-      `;
-      feed.appendChild(card);
-    });
+    try {
+      const res = await fetch(
+        "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + category
+      );
 
-  } catch (e) {
-    console.error(e);
+      if (!res.ok) {
+        feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+        return;
+      }
+
+      const data = await res.json();
+      feed.innerHTML = "";
+
+      data.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${item.image}" loading="lazy">
+          <div class="content">
+            <h4>${item.title}</h4>
+            <a href="${item.research}" target="_blank">งานวิจัย</a>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+
+    } catch (err) {
+      console.error(err);
+      feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+    }
   }
 
-  loading = false;
-}
+  categorySelect.addEventListener("change", loadFeed);
 
-categorySelect.addEventListener("change", e => {
-  currentCategory = e.target.value;
-  loadFeed(true);
 });
-
-// infinite scroll
-window.addEventListener("scroll", () => {
-  if (
-    window.innerHeight + window.scrollY >=
-    document.body.offsetHeight - 300
-  ) {
-    loadFeed();
-  }
-});
-</script>
-</body>
+</script></body>
 </html>
