@@ -122,7 +122,7 @@ async function loadFeed(reset = false) {
 
   try {
     const res = await fetch(
-      `https://YOUR_WORKER_URL/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
+      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=inspiration/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
     );
     const data = await res.json();
 
