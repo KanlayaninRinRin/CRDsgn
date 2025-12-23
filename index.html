@@ -85,16 +85,23 @@ select {
 </div>
 
 <script>
-async function loadFeed() {
-  const category = document.getElementById("category").value;
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
+let currentCategory = "";
+let loading = false;
 
-  if (!category) return;
+async function loadFeed(reset = false) {
+  if (loading) return;
+  loading = true;
+
+  const feed = document.getElementById("feed");
+
+  if (reset) {
+    feed.innerHTML = "";
+  }
 
   const res = await fetch(
-    "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + category
+    "https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=" + currentCategory
   );
+
   const data = await res.json();
 
   data.forEach(item => {
@@ -109,8 +116,24 @@ async function loadFeed() {
     `;
     feed.appendChild(card);
   });
-}
-</script>
 
+  loading = false;
+}
+
+document.getElementById("category").addEventListener("change", e => {
+  currentCategory = e.target.value;
+  if (!currentCategory) return;
+  loadFeed(true);
+});
+
+// infinite scroll
+window.addEventListener("scroll", () => {
+  if (
+    window.innerHeight + window.scrollY >= document.body.offsetHeight - 200
+  ) {
+    loadFeed();
+  }
+});
+</script>
 </body>
 </html>
