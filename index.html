@@ -34,7 +34,7 @@ async function loadFeed() {
   loading = true;
 
   try {
-    const res = await fetch(`https://YOUR_WORKER_URL/?category=${category}&q=${encodeURIComponent(query)}`);
+    const res = await fetch(`https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=inspiration/?category=${category}&q=${encodeURIComponent(query)}`);
     const data = await res.json();
     feed.innerHTML = "";
 
