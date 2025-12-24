@@ -175,7 +175,7 @@ async function loadFeed(reset=false){
       card.className="card";
 
       if(item.type==="image" && imageCount<20){
-        const imgUrl =
+const imgUrl =
   `https://source.unsplash.com/featured/400x300?${encodeURIComponent(item.query)}&sig=${item.sig}`;
         card.innerHTML =
           `<img src="${imgUrl}">
