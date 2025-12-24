@@ -174,15 +174,18 @@ async function loadFeed(reset=false){
       const card = document.createElement("div");
       card.className="card";
 
-      if(item.type==="image" && imageCount<20){
-const imgUrl = item.imageUrl;
-card.innerHTML = `
-`<img src="${imgUrl}" loading="lazy">
-  <div class="content">
-    <h4>${item.title}</h4>
-  </div>`;
-        imageCount++;
+   if (item.type === "image" && imageCount < 20) {
+  const imgUrl = item.imageUrl;
 
+  card.innerHTML = `
+    <img src="${imgUrl}" loading="lazy">
+    <div class="content">
+      <h4>${item.title}</h4>
+    </div>
+  `;
+
+  imageCount++;
+}
       } else if(item.type==="research" && researchCount<20){
         card.innerHTML =
           `<div class="content">
