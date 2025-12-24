@@ -92,9 +92,8 @@ const endMsg = document.getElementById("end-msg");
 let currentPage = 1;
 let reachedEnd = false;
 
-settingSelect.addEventListener("change",()=>{
-  settingCustom.style.display =
-    settingSelect.value === "other" ? "block" : "none";
+<label>แท็ก (คั่นด้วยเว้นวรรคหรือ , )</label>
+<input id="search-input" placeholder="เช่น magic city ritual dream">
 });
 
 function resetNav(){
