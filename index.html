@@ -5,35 +5,17 @@
 <title>Character Research Reference</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background:#fdf5ef;
-  color:#3a2c2a;
-  margin:0;
-}
-.container {
-  max-width:1100px;
-  margin:auto;
-  padding:20px;
-}
-h1 {
-  text-align:center;
-  margin-bottom:20px;
-}
+/* 🔒 UI เดิมทั้งหมด */
+body { font-family: Arial, sans-serif; background:#fdf5ef; color:#3a2c2a; margin:0; }
+.container { max-width:1100px; margin:auto; padding:20px; }
+h1 { text-align:center; margin-bottom:20px; }
 select,input,button {
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
+  width:100%; padding:10px; margin:8px 0;
+  border-radius:8px; border:1px solid #ccc;
 }
-button {
-  background:#8b5e3c;
-  color:white;
-  border:none;
-  cursor:pointer;
-}
+button { background:#8b5e3c; color:white; border:none; cursor:pointer; }
 button:hover { background:#70482d; }
+button.disabled { background:#ccc; cursor:not-allowed; }
 
 .feed {
   display:grid;
@@ -41,46 +23,26 @@ button:hover { background:#70482d; }
   gap:24px;
   margin-top:30px;
 }
-
 .card {
   background:#fff8f0;
   border-radius:14px;
   overflow:hidden;
   box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
-
-.card img {
-  width:100%;
-  height:180px;
-  object-fit:cover;
-  display:block;
-}
-
-.card .content {
-  padding:12px;
-}
-
-.card h4 {
-  margin:0 0 6px 0;
-  font-size:14px;
-}
-
-.card p {
-  font-size:12px;
-  margin:4px 0;
-}
-
-.card a {
-  color:#8b5e3c;
-  font-size:13px;
-  text-decoration:none;
-}
+.card img { width:100%; height:180px; object-fit:cover; display:block; }
+.card .content { padding:12px; }
+.card h4 { margin:0 0 6px 0; font-size:14px; }
+.card p { font-size:12px; margin:4px 0; }
+.card a { color:#8b5e3c; font-size:13px; text-decoration:none; }
 
 .nav-buttons {
-  display:flex;
-  gap:12px;
-  margin:30px 0;
-  justify-content:center;
+  display:flex; gap:12px;
+  margin:30px 0; justify-content:center;
+}
+.end-message {
+  text-align:center;
+  color:#8b5e3c;
+  margin-top:10px;
 }
 </style>
 </head>
@@ -99,16 +61,7 @@ button:hover { background:#70482d; }
 
 <input id="setting-custom" placeholder="กรอกเซตติ้งเอง" style="display:none;">
 
-<label>หมวดข้อมูล</label>
-<select id="category">
-  <option value="">-- ไม่เลือก = สุ่มทุกหมวด --</option>
-  <option value="inspiration">แรงบันดาลใจ</option>
-  <option value="biology">ชีวภาพ</option>
-  <option value="psychology">จิตวิทยา</option>
-  <option value="society">สังคม</option>
-</select>
-
-<label>คำค้นเพิ่มเติม (ไม่บังคับ)</label>
+<label>คำอธิบายเพิ่มเติม (ไม่บังคับ)</label>
 <input id="search-input" placeholder="ถ้าไม่กรอก จะสุ่มจากเซตติ้ง">
 
 <button id="search-btn">ค้นหา</button>
@@ -119,19 +72,25 @@ button:hover { background:#70482d; }
   <button id="prev-btn" style="display:none;">หน้าก่อนหน้า</button>
   <button id="next-btn" style="display:none;">หน้าถัดไป</button>
 </div>
+
+<div id="end-msg" class="end-message" style="display:none;">
+  ถึงรายการสุดท้ายแล้ว
+</div>
+
 </div>
 
 <script>
 const settingSelect = document.getElementById("setting-select");
 const settingCustom = document.getElementById("setting-custom");
-const categorySelect = document.getElementById("category");
 const searchInput = document.getElementById("search-input");
 const searchBtn = document.getElementById("search-btn");
 const feed = document.getElementById("feed");
 const nextBtn = document.getElementById("next-btn");
 const prevBtn = document.getElementById("prev-btn");
+const endMsg = document.getElementById("end-msg");
 
 let currentPage = 1;
+let reachedEnd = false;
 
 settingSelect.addEventListener("change",()=>{
   settingCustom.style.display =
@@ -139,11 +98,10 @@ settingSelect.addEventListener("change",()=>{
 });
 
 async function loadFeed(reset=false){
-  const category = categorySelect.value;
   const setting =
     settingSelect.value === "other"
-    ? settingCustom.value.trim()
-    : settingSelect.value;
+      ? settingCustom.value.trim()
+      : settingSelect.value;
 
   const query = searchInput.value.trim() || setting;
 
@@ -154,72 +112,78 @@ async function loadFeed(reset=false){
 
   if(reset){
     currentPage = 1;
+    reachedEnd = false;
+    endMsg.style.display = "none";
   }
 
   feed.innerHTML = "<p>กำลังโหลดข้อมูล...</p>";
 
-  try{
-    const res = await fetch(
-      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?category=${category}&q=${encodeURIComponent(query)}&page=${currentPage}`
-    );
-    const data = await res.json();
+  const res = await fetch(
+    `https://fragrant-leaf-5042.jnnp1591.workers.dev/?q=${encodeURIComponent(query)}&page=${currentPage}`
+  );
+  const data = await res.json();
 
-    feed.innerHTML = "";
+  feed.innerHTML = "";
 
-    let imageCount = 0;
-    let researchCount = 0;
-
-    data.forEach(item=>{
-      if(imageCount >= 20 && researchCount >= 20) return;
-
-      const card = document.createElement("div");
-      card.className = "card";
-
-      if(item.type === "image" && imageCount < 20){
-        card.innerHTML = `
-          <img src="${item.imageUrl}" loading="lazy">
-          <div class="content">
-            <h4>${item.title}</h4>
-          </div>
-        `;
-        imageCount++;
-
-      } else if(item.type === "research" && researchCount < 20){
-        card.innerHTML = `
-          <div class="content">
-            <h4>${item.title}</h4>
-            <p>ผู้แต่ง: ${item.authors}</p>
-            <p>ปี: ${item.year}</p>
-            <p>สถาบัน: ${item.institution}</p>
-            <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
-          </div>
-        `;
-        researchCount++;
-      }
-
-      feed.appendChild(card);
-    });
-
-    nextBtn.style.display = "block";
-    prevBtn.style.display = currentPage > 1 ? "block" : "none";
-
-  }catch(err){
-    console.error(err);
-    feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+  if(data.length === 0){
+    reachedEnd = true;
+    nextBtn.classList.add("disabled");
+    nextBtn.disabled = true;
+    endMsg.style.display = "block";
+    return;
   }
+
+  data.forEach(item=>{
+    const card = document.createElement("div");
+    card.className = "card";
+
+    if(item.type === "image"){
+      card.innerHTML = `
+        <img src="${item.imageUrl}" loading="lazy">
+        <div class="content">
+          <h4>${item.title}</h4>
+          <p>${item.source}</p>
+        </div>`;
+    }
+
+    if(item.type === "research"){
+      card.innerHTML = `
+        <div class="content">
+          <h4>${item.title}</h4>
+          <p>${item.authors}</p>
+          <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
+        </div>`;
+    }
+
+    if(item.type === "text"){
+      card.innerHTML = `
+        <div class="content">
+          <h4>${item.title}</h4>
+          <p>${item.excerpt}</p>
+          <p><em>${item.source}</em></p>
+        </div>`;
+    }
+
+    feed.appendChild(card);
+  });
+
+  nextBtn.style.display = "block";
+  prevBtn.style.display = currentPage > 1 ? "block" : "none";
 }
 
-searchBtn.addEventListener("click",()=>loadFeed(true));
-nextBtn.addEventListener("click",()=>{
-  currentPage++;
-  loadFeed();
-});
-prevBtn.addEventListener("click",()=>{
-  if(currentPage > 1){
+searchBtn.onclick = ()=>loadFeed(true);
+nextBtn.onclick = ()=>{
+  if(!reachedEnd){
+    currentPage++;
+    loadFeed();
+  }
+};
+prevBtn.onclick = ()=>{
+  if(currentPage>1){
     currentPage--;
     loadFeed();
   }
-});
+};
 </script>
 </body>
 </html>
