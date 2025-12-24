@@ -177,12 +177,12 @@ async function loadFeed(reset=false){
    if (item.type === "image" && imageCount < 20) {
   const imgUrl = item.imageUrl;
 
-  card.innerHTML = `
-    <img src="${imgUrl}" loading="lazy">
-    <div class="content">
-      <h4>${item.title}</h4>
-    </div>
-  `;
+card.innerHTML = `
+  <img src="${imgUrl}" loading="lazy">
+  <div class="content">
+    <h4>${item.title}</h4>
+  </div>
+`;
 
   imageCount++;
 }
