@@ -175,11 +175,12 @@ async function loadFeed(reset=false){
       card.className="card";
 
       if(item.type==="image" && imageCount<20){
-const imgUrl =
-  `https://source.unsplash.com/featured/400x300?${encodeURIComponent(item.query)}&sig=${item.sig}`;
-        card.innerHTML =
-`<img src="${imgUrl}" referrerpolicy="no-referrer" loading="lazy">
-           <div class="content"><h4>${item.title}</h4></div>`;
+const imgUrl = item.imageUrl;
+card.innerHTML = `
+`<img src="${imgUrl}" loading="lazy">
+  <div class="content">
+    <h4>${item.title}</h4>
+  </div>`;
         imageCount++;
 
       } else if(item.type==="research" && researchCount<20){
