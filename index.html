@@ -97,6 +97,13 @@ settingSelect.addEventListener("change",()=>{
     settingSelect.value === "other" ? "block" : "none";
 });
 
+function resetNav(){
+  reachedEnd = false;
+  endMsg.style.display = "none";
+  nextBtn.disabled = false;
+  nextBtn.classList.remove("disabled");
+}
+
 async function loadFeed(reset=false){
   const setting =
     settingSelect.value === "other"
@@ -112,74 +119,80 @@ async function loadFeed(reset=false){
 
   if(reset){
     currentPage = 1;
-    reachedEnd = false;
-    endMsg.style.display = "none";
+    resetNav();
   }
 
   feed.innerHTML = "<p>กำลังโหลดข้อมูล...</p>";
 
-  const res = await fetch(
-    `https://fragrant-leaf-5042.jnnp1591.workers.dev/?q=${encodeURIComponent(query)}&page=${currentPage}`
-  );
-  const data = await res.json();
+  try{
+    const res = await fetch(
+      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?q=${encodeURIComponent(query)}&page=${currentPage}`
+    );
+    const data = await res.json();
 
-  feed.innerHTML = "";
+    feed.innerHTML = "";
 
-  if(data.length === 0){
-    reachedEnd = true;
-    nextBtn.classList.add("disabled");
-    nextBtn.disabled = true;
-    endMsg.style.display = "block";
-    return;
+    if(!Array.isArray(data) || data.length === 0){
+      reachedEnd = true;
+      nextBtn.disabled = true;
+      nextBtn.classList.add("disabled");
+      endMsg.style.display = "block";
+      return;
+    }
+
+    data.forEach(item=>{
+      const card = document.createElement("div");
+      card.className = "card";
+
+      if(item.type === "image"){
+        card.innerHTML = `
+          <img src="${item.imageUrl}" loading="lazy" referrerpolicy="no-referrer">
+          <div class="content">
+            <h4>${item.title || "Untitled image"}</h4>
+            <p>${item.source || ""}</p>
+          </div>`;
+      }
+
+      else if(item.type === "research"){
+        card.innerHTML = `
+          <div class="content">
+            <h4>${item.title || "Untitled research"}</h4>
+            <p>${item.authors || "Unknown author"}</p>
+            <a href="${item.link}" target="_blank" rel="noopener">อ่านงานวิจัย</a>
+          </div>`;
+      }
+
+      else if(item.type === "text"){
+        card.innerHTML = `
+          <div class="content">
+            <h4>${item.title || "Untitled text"}</h4>
+            <p>${item.excerpt || ""}</p>
+            <p><em>${item.source || ""}</em></p>
+          </div>`;
+      }
+
+      feed.appendChild(card);
+    });
+
+    nextBtn.style.display = "block";
+    prevBtn.style.display = currentPage > 1 ? "block" : "none";
+
+  }catch(err){
+    feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
   }
-
-  data.forEach(item=>{
-    const card = document.createElement("div");
-    card.className = "card";
-
-    if(item.type === "image"){
-      card.innerHTML = `
-        <img src="${item.imageUrl}" loading="lazy">
-        <div class="content">
-          <h4>${item.title}</h4>
-          <p>${item.source}</p>
-        </div>`;
-    }
-
-    if(item.type === "research"){
-      card.innerHTML = `
-        <div class="content">
-          <h4>${item.title}</h4>
-          <p>${item.authors}</p>
-          <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
-        </div>`;
-    }
-
-    if(item.type === "text"){
-      card.innerHTML = `
-        <div class="content">
-          <h4>${item.title}</h4>
-          <p>${item.excerpt}</p>
-          <p><em>${item.source}</em></p>
-        </div>`;
-    }
-
-    feed.appendChild(card);
-  });
-
-  nextBtn.style.display = "block";
-  prevBtn.style.display = currentPage > 1 ? "block" : "none";
 }
 
 searchBtn.onclick = ()=>loadFeed(true);
+
 nextBtn.onclick = ()=>{
   if(!reachedEnd){
     currentPage++;
     loadFeed();
   }
 };
+
 prevBtn.onclick = ()=>{
-  if(currentPage>1){
+  if(currentPage > 1){
     currentPage--;
     loadFeed();
   }
