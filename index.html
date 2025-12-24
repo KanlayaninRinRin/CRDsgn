@@ -101,7 +101,7 @@ button:hover { background:#70482d; }
 
 <label>หมวดข้อมูล</label>
 <select id="category">
-  <option value="">-- เลือกหมวด --</option>
+  <option value="">-- ไม่เลือก = สุ่มทุกหมวด --</option>
   <option value="inspiration">แรงบันดาลใจ</option>
   <option value="biology">ชีวภาพ</option>
   <option value="psychology">จิตวิทยา</option>
@@ -147,12 +147,13 @@ async function loadFeed(reset=false){
 
   const query = searchInput.value.trim() || setting;
 
-  if(!setting){ alert("กรุณาเลือกเซตติ้ง"); return; }
-  if(!category){ alert("กรุณาเลือกหมวด"); return; }
+  if(!setting){
+    alert("กรุณาเลือกเซตติ้ง");
+    return;
+  }
 
   if(reset){
     currentPage = 1;
-    feed.innerHTML = "";
   }
 
   feed.innerHTML = "<p>กำลังโหลดข้อมูล...</p>";
@@ -168,59 +169,55 @@ async function loadFeed(reset=false){
     let imageCount = 0;
     let researchCount = 0;
 
-data.forEach(item => {
-  if (imageCount >= 20 && researchCount >= 20) return;
+    data.forEach(item=>{
+      if(imageCount >= 20 && researchCount >= 20) return;
 
-  const card = document.createElement("div");
-  card.className = "card";
+      const card = document.createElement("div");
+      card.className = "card";
 
-  if (item.type === "image" && imageCount < 20) {
-    const imgUrl = item.imageUrl;
+      if(item.type === "image" && imageCount < 20){
+        card.innerHTML = `
+          <img src="${item.imageUrl}" loading="lazy">
+          <div class="content">
+            <h4>${item.title}</h4>
+          </div>
+        `;
+        imageCount++;
 
-    card.innerHTML = `
-      <img src="${imgUrl}" loading="lazy">
-      <div class="content">
-        <h4>${item.title}</h4>
-      </div>
-    `;
+      } else if(item.type === "research" && researchCount < 20){
+        card.innerHTML = `
+          <div class="content">
+            <h4>${item.title}</h4>
+            <p>ผู้แต่ง: ${item.authors}</p>
+            <p>ปี: ${item.year}</p>
+            <p>สถาบัน: ${item.institution}</p>
+            <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
+          </div>
+        `;
+        researchCount++;
+      }
 
-    imageCount++;
+      feed.appendChild(card);
+    });
 
-  } else if (item.type === "research" && researchCount < 20) {
-    card.innerHTML = `
-      <div class="content">
-        <h4>${item.title}</h4>
-        <p>ผู้แต่ง: ${item.authors}</p>
-        <p>ปี: ${item.year}</p>
-        <p>สถาบัน: ${item.institution}</p>
-        <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
-      </div>
-    `;
-
-    researchCount++;
-  }
-
-  feed.appendChild(card);
-});
-    
-    nextBtn.style.display="block";
-    prevBtn.style.display = currentPage>1 ? "block":"none";
+    nextBtn.style.display = "block";
+    prevBtn.style.display = currentPage > 1 ? "block" : "none";
 
   }catch(err){
     console.error(err);
-    feed.innerHTML="<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+    feed.innerHTML = "<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
   }
 }
 
 searchBtn.addEventListener("click",()=>loadFeed(true));
 nextBtn.addEventListener("click",()=>{
   currentPage++;
-  loadFeed(false);
+  loadFeed();
 });
 prevBtn.addEventListener("click",()=>{
-  if(currentPage>1){
+  if(currentPage > 1){
     currentPage--;
-    loadFeed(false);
+    loadFeed();
   }
 });
 </script>
