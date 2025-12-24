@@ -168,38 +168,41 @@ async function loadFeed(reset=false){
     let imageCount = 0;
     let researchCount = 0;
 
-    data.forEach(item=>{
-      if(imageCount>=20 && researchCount>=20) return;
+data.forEach(item => {
+  if (imageCount >= 20 && researchCount >= 20) return;
 
-      const card = document.createElement("div");
-      card.className="card";
+  const card = document.createElement("div");
+  card.className = "card";
 
-   if (item.type === "image" && imageCount < 20) {
-  const imgUrl = item.imageUrl;
+  if (item.type === "image" && imageCount < 20) {
+    const imgUrl = item.imageUrl;
 
-card.innerHTML = `
-  <img src="${imgUrl}" loading="lazy">
-  <div class="content">
-    <h4>${item.title}</h4>
-  </div>
-`;
+    card.innerHTML = `
+      <img src="${imgUrl}" loading="lazy">
+      <div class="content">
+        <h4>${item.title}</h4>
+      </div>
+    `;
 
-  imageCount++;
-}
-      } else if(item.type==="research" && researchCount<20){
-        card.innerHTML =
-          `<div class="content">
-            <h4>${item.title}</h4>
-            <p>ผู้แต่ง: ${item.authors}</p>
-            <p>ปี: ${item.year}</p>
-            <p>สถาบัน: ${item.institution}</p>
-            <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
-          </div>`;
-        researchCount++;
-      }
-      feed.appendChild(card);
-    });
+    imageCount++;
 
+  } else if (item.type === "research" && researchCount < 20) {
+    card.innerHTML = `
+      <div class="content">
+        <h4>${item.title}</h4>
+        <p>ผู้แต่ง: ${item.authors}</p>
+        <p>ปี: ${item.year}</p>
+        <p>สถาบัน: ${item.institution}</p>
+        <a href="${item.link}" target="_blank">อ่านงานวิจัย</a>
+      </div>
+    `;
+
+    researchCount++;
+  }
+
+  feed.appendChild(card);
+});
+    
     nextBtn.style.display="block";
     prevBtn.style.display = currentPage>1 ? "block":"none";
 
