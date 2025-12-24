@@ -5,6 +5,7 @@
 <title>Character Research Reference</title>
 
 <style>
+/* 🔒 UI เดิม */
 body {
   font-family: Arial, sans-serif;
   background:#fdf5ef;
@@ -16,8 +17,10 @@ body {
   margin:auto;
   padding:20px;
 }
-h1 { text-align:center; }
-
+h1 {
+  text-align:center;
+  margin-bottom:20px;
+}
 input,button {
   width:100%;
   padding:10px;
@@ -29,31 +32,19 @@ button {
   background:#8b5e3c;
   color:white;
   border:none;
-}
-button:hover { background:#70482d; }
-
-.tag-box {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:10px 0 20px;
-}
-.tag {
-  background:#e6d4c5;
-  padding:6px 14px;
-  border-radius:20px;
-  font-size:12px;
   cursor:pointer;
 }
-.tag.active {
-  background:#8b5e3c;
-  color:white;
+button:hover { background:#70482d; }
+button.disabled {
+  background:#ccc;
+  cursor:not-allowed;
 }
 
 .feed {
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:24px;
+  margin-top:30px;
 }
 .card {
   background:#fff8f0;
@@ -65,8 +56,36 @@ button:hover { background:#70482d; }
   width:100%;
   height:180px;
   object-fit:cover;
+  display:block;
 }
-.card .content { padding:12px; }
+.card .content {
+  padding:12px;
+}
+.card h4 {
+  margin:0 0 6px 0;
+  font-size:14px;
+}
+.card p {
+  font-size:12px;
+  margin:4px 0;
+}
+.card a {
+  color:#8b5e3c;
+  font-size:13px;
+  text-decoration:none;
+}
+
+.nav-buttons {
+  display:flex;
+  gap:12px;
+  margin:30px 0;
+  justify-content:center;
+}
+.end-message {
+  text-align:center;
+  color:#8b5e3c;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -75,70 +94,139 @@ button:hover { background:#70482d; }
 
 <h1>Character Research Reference</h1>
 
-<label>แท็กที่เลือก / พิมพ์เพิ่มได้</label>
-<input id="search-input" placeholder="เช่น magic dream city psychology">
+<label>Tags (English only, separated by space or comma)</label>
+<input
+  id="search-input"
+  placeholder="magic ritual dream mythology"
+/>
 
-<label>แท็กแนะนำ</label>
-<div id="tag-box" class="tag-box"></div>
-
-<button id="search-btn">ค้นหา</button>
+<button id="search-btn">Search</button>
 
 <div id="feed" class="feed"></div>
+
+<div class="nav-buttons">
+  <button id="prev-btn" style="display:none;">Previous</button>
+  <button id="next-btn" style="display:none;">Next</button>
+</div>
+
+<div id="end-msg" class="end-message" style="display:none;">
+  End of results
+</div>
 
 </div>
 
 <script>
-const SUGGESTED_TAGS = [
-  "magic","ritual","dream","memory","identity","city","urban","fantasy",
-  "symbol","psychology","myth","artifact","technology","society","dark",
-  "ancient","future","emotion","subconscious","surreal","character",
-  "worldbuilding","concept","narrative","portal","legend"
-];
-
-const tagBox = document.getElementById("tag-box");
 const searchInput = document.getElementById("search-input");
+const searchBtn = document.getElementById("search-btn");
 const feed = document.getElementById("feed");
+const nextBtn = document.getElementById("next-btn");
+const prevBtn = document.getElementById("prev-btn");
+const endMsg = document.getElementById("end-msg");
 
-const activeTags = new Set();
+let currentPage = 1;
+let reachedEnd = false;
 
-function renderTags(){
-  tagBox.innerHTML = "";
-  SUGGESTED_TAGS.forEach(t=>{
-    const el = document.createElement("div");
-    el.className = "tag" + (activeTags.has(t) ? " active" : "");
-    el.textContent = t;
-    el.onclick = ()=>{
-      activeTags.has(t) ? activeTags.delete(t) : activeTags.add(t);
-      searchInput.value = [...activeTags].join(" ");
-      renderTags();
-    };
-    tagBox.appendChild(el);
-  });
+function resetNav(){
+  reachedEnd = false;
+  endMsg.style.display = "none";
+  nextBtn.disabled = false;
+  nextBtn.classList.remove("disabled");
 }
-renderTags();
 
-document.getElementById("search-btn").onclick = async ()=>{
-  const q = searchInput.value.trim();
-  if(!q) return alert("กรุณาใส่อย่างน้อย 1 แท็ก");
+async function loadFeed(reset=false){
+  const query = searchInput.value.trim();
 
-  feed.innerHTML = "กำลังโหลด...";
-  const res = await fetch(
-    `https://fragrant-leaf-5042.jnnp1591.workers.dev/?q=${encodeURIComponent(q)}`
-  );
-  const data = await res.json();
+  if(!query){
+    alert("Please enter at least one tag");
+    return;
+  }
 
-  feed.innerHTML = "";
-  data.forEach(item=>{
-    const c = document.createElement("div");
-    c.className = "card";
-    if(item.type==="image"){
-      c.innerHTML = `<img src="${item.imageUrl}"><div class="content">${item.title}</div>`;
-    } else {
-      c.innerHTML = `<div class="content"><strong>${item.title}</strong></div>`;
+  if(reset){
+    currentPage = 1;
+    resetNav();
+  }
+
+  feed.innerHTML = "<p>Loading...</p>";
+
+  try{
+    const res = await fetch(
+      `https://fragrant-leaf-5042.jnnp1591.workers.dev/?q=${encodeURIComponent(query)}&page=${currentPage}`
+    );
+
+    const data = await res.json();
+    feed.innerHTML = "";
+
+    if(!Array.isArray(data) || data.length === 0){
+      reachedEnd = true;
+      nextBtn.disabled = true;
+      nextBtn.classList.add("disabled");
+      endMsg.style.display = "block";
+      return;
     }
-    feed.appendChild(c);
-  });
+
+    data.forEach(item=>{
+      const card = document.createElement("div");
+      card.className = "card";
+
+      if(item.type === "image"){
+        card.innerHTML = `
+          <img src="${item.imageUrl}" loading="lazy" referrerpolicy="no-referrer">
+          <div class="content">
+            <h4>${item.title || "Image"}</h4>
+            <p>${item.source || ""}</p>
+          </div>
+        `;
+      }
+
+      if(item.type === "text"){
+        card.innerHTML = `
+          <div class="content">
+            <h4>${item.title || "Text"}</h4>
+            <p>${item.excerpt || ""}</p>
+            <p><em>${item.source || ""}</em></p>
+          </div>
+        `;
+      }
+
+      if(item.type === "research"){
+        card.innerHTML = `
+          <div class="content">
+            <h4>${item.title || "Research"}</h4>
+            <p>${item.authors || ""}</p>
+            <a href="${item.link}" target="_blank" rel="noopener">
+              Read paper
+            </a>
+          </div>
+        `;
+      }
+
+      feed.appendChild(card);
+    });
+
+    nextBtn.style.display = "block";
+    prevBtn.style.display = currentPage > 1 ? "block" : "none";
+
+  }catch{
+    feed.innerHTML = "<p>Error loading data</p>";
+  }
+}
+
+searchBtn.onclick = ()=>loadFeed(true);
+
+nextBtn.onclick = ()=>{
+  if(!reachedEnd){
+    currentPage++;
+    loadFeed();
+  }
+};
+
+prevBtn.onclick = ()=>{
+  if(currentPage > 1){
+    currentPage--;
+    loadFeed();
+  }
 };
 </script>
+
 </body>
 </html>
