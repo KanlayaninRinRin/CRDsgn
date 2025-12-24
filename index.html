@@ -5,17 +5,40 @@
 <title>Character Research Reference</title>
 
 <style>
-/* 🔒 UI เดิมทั้งหมด */
-body { font-family: Arial, sans-serif; background:#fdf5ef; color:#3a2c2a; margin:0; }
-.container { max-width:1100px; margin:auto; padding:20px; }
-h1 { text-align:center; margin-bottom:20px; }
-select,input,button {
-  width:100%; padding:10px; margin:8px 0;
-  border-radius:8px; border:1px solid #ccc;
+/* 🔒 UI เดิม */
+body {
+  font-family: Arial, sans-serif;
+  background:#fdf5ef;
+  color:#3a2c2a;
+  margin:0;
 }
-button { background:#8b5e3c; color:white; border:none; cursor:pointer; }
+.container {
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+h1 {
+  text-align:center;
+  margin-bottom:20px;
+}
+input,button {
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+button {
+  background:#8b5e3c;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
 button:hover { background:#70482d; }
-button.disabled { background:#ccc; cursor:not-allowed; }
+button.disabled {
+  background:#ccc;
+  cursor:not-allowed;
+}
 
 .feed {
   display:grid;
@@ -29,15 +52,34 @@ button.disabled { background:#ccc; cursor:not-allowed; }
   overflow:hidden;
   box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
-.card img { width:100%; height:180px; object-fit:cover; display:block; }
-.card .content { padding:12px; }
-.card h4 { margin:0 0 6px 0; font-size:14px; }
-.card p { font-size:12px; margin:4px 0; }
-.card a { color:#8b5e3c; font-size:13px; text-decoration:none; }
+.card img {
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  display:block;
+}
+.card .content {
+  padding:12px;
+}
+.card h4 {
+  margin:0 0 6px 0;
+  font-size:14px;
+}
+.card p {
+  font-size:12px;
+  margin:4px 0;
+}
+.card a {
+  color:#8b5e3c;
+  font-size:13px;
+  text-decoration:none;
+}
 
 .nav-buttons {
-  display:flex; gap:12px;
-  margin:30px 0; justify-content:center;
+  display:flex;
+  gap:12px;
+  margin:30px 0;
+  justify-content:center;
 }
 .end-message {
   text-align:center;
@@ -49,20 +91,14 @@ button.disabled { background:#ccc; cursor:not-allowed; }
 
 <body>
 <div class="container">
+
 <h1>Character Research Reference</h1>
 
-<label>เลือกเซตติ้ง</label>
-<select id="setting-select">
-  <option value="">-- เลือกเซตติ้ง --</option>
-  <option value="modern">โลกมนุษย์ปัจจุบัน</option>
-  <option value="fantasy">โลกแฟนตาซี</option>
-  <option value="other">อื่น ๆ</option>
-</select>
-
-<input id="setting-custom" placeholder="กรอกเซตติ้งเอง" style="display:none;">
-
-<label>คำอธิบายเพิ่มเติม (ไม่บังคับ)</label>
-<input id="search-input" placeholder="ถ้าไม่กรอก จะสุ่มจากเซตติ้ง">
+<label>แท็ก (คั่นด้วยเว้นวรรคหรือ , )</label>
+<input
+  id="search-input"
+  placeholder="เช่น magic city ritual dream psychology"
+/>
 
 <button id="search-btn">ค้นหา</button>
 
@@ -80,8 +116,6 @@ button.disabled { background:#ccc; cursor:not-allowed; }
 </div>
 
 <script>
-const settingSelect = document.getElementById("setting-select");
-const settingCustom = document.getElementById("setting-custom");
 const searchInput = document.getElementById("search-input");
 const searchBtn = document.getElementById("search-btn");
 const feed = document.getElementById("feed");
@@ -92,10 +126,6 @@ const endMsg = document.getElementById("end-msg");
 let currentPage = 1;
 let reachedEnd = false;
 
-<label>แท็ก (คั่นด้วยเว้นวรรคหรือ , )</label>
-<input id="search-input" placeholder="เช่น magic city ritual dream">
-});
-
 function resetNav(){
   reachedEnd = false;
   endMsg.style.display = "none";
@@ -104,15 +134,10 @@ function resetNav(){
 }
 
 async function loadFeed(reset=false){
-  const setting =
-    settingSelect.value === "other"
-      ? settingCustom.value.trim()
-      : settingSelect.value;
+  const query = searchInput.value.trim();
 
-  const query = searchInput.value.trim() || setting;
-
-  if(!setting){
-    alert("กรุณาเลือกเซตติ้ง");
+  if(!query){
+    alert("กรุณาใส่แท็กอย่างน้อย 1 คำ");
     return;
   }
 
@@ -127,8 +152,8 @@ async function loadFeed(reset=false){
     const res = await fetch(
       `https://fragrant-leaf-5042.jnnp1591.workers.dev/?q=${encodeURIComponent(query)}&page=${currentPage}`
     );
-    const data = await res.json();
 
+    const data = await res.json();
     feed.innerHTML = "";
 
     if(!Array.isArray(data) || data.length === 0){
@@ -145,29 +170,36 @@ async function loadFeed(reset=false){
 
       if(item.type === "image"){
         card.innerHTML = `
-          <img src="${item.imageUrl}" loading="lazy" referrerpolicy="no-referrer">
+          <img src="${item.imageUrl}"
+               loading="lazy"
+               referrerpolicy="no-referrer">
           <div class="content">
             <h4>${item.title || "Untitled image"}</h4>
             <p>${item.source || ""}</p>
-          </div>`;
+          </div>
+        `;
       }
 
-      else if(item.type === "research"){
+      if(item.type === "research"){
         card.innerHTML = `
           <div class="content">
             <h4>${item.title || "Untitled research"}</h4>
             <p>${item.authors || "Unknown author"}</p>
-            <a href="${item.link}" target="_blank" rel="noopener">อ่านงานวิจัย</a>
-          </div>`;
+            <a href="${item.link}"
+               target="_blank"
+               rel="noopener">อ่านงานวิจัย</a>
+          </div>
+        `;
       }
 
-      else if(item.type === "text"){
+      if(item.type === "text"){
         card.innerHTML = `
           <div class="content">
             <h4>${item.title || "Untitled text"}</h4>
             <p>${item.excerpt || ""}</p>
             <p><em>${item.source || ""}</em></p>
-          </div>`;
+          </div>
+        `;
       }
 
       feed.appendChild(card);
@@ -197,5 +229,6 @@ prevBtn.onclick = ()=>{
   }
 };
 </script>
+
 </body>
 </html>
